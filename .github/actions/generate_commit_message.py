@@ -5,8 +5,6 @@ import subprocess
 # LoadAI API key from environment
 account_id = os.getenv("CLOUDFLARE_ACCOUNT_ID")
 api_token = os.getenv("CLOUDFLARE_API_TOKEN")
-print(account_id)
-print(api_token)
 
 # Initialize AI client with key-based authentication
 client = Cloudflare(api_token=api_token)
