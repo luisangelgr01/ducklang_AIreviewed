@@ -130,6 +130,9 @@ ENV/
 env.bak/
 venv.bak/
 
+# Antlr
+.antlr/
+
 # Spyder project settings
 .spyderproject
 .spyproject
