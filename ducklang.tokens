@@ -1,0 +1,17 @@
+IF=1
+ELSE=2
+ID=3
+NUMBER=4
+LPAREN=5
+RPAREN=6
+LBRACE=7
+RBRACE=8
+EQ=9
+WS=10
+'if'=1
+'else'=2
+'('=5
+')'=6
+'{'=7
+'}'=8
+'='=9
