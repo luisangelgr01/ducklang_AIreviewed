@@ -39,7 +39,7 @@ def get_commit_message(diff):
 
     # Constructing a prompt to guide the model
     context=("You are an AI code reviewer. Generate a commit message with a title and a body. "
-            "The title should start with an appropriate emoticon: \n\n"
+            "The body should start with an appropriate emoticon: \n\n"
             "✨ for new features\n"
             "🐛 for bug fixes\n"
             "📚 for documentation updates\n"
