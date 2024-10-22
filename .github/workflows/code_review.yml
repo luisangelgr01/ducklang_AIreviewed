@@ -1,4 +1,4 @@
-name: Code Review with OpenAI
+name: Code Review with AI
 
 on:
   pull_request:
@@ -18,7 +18,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          pip install openai PyGithub GitPython
+          pip install cloudflare PyGithub GitPython
       
       # Set the Git user so that commits from this action are attributed to github-actions[bot].
       - name: Set up Git user
@@ -29,12 +29,11 @@ jobs:
       # Configure Git to push using the provided token. ############################ THE LINE BENEATH (32) NEEDS TO BE CHANGED TO USE YOUR REPO URL ############################
       - name: Set up Git
         run: |
-          git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/Sieena/DF-Angular-Migration-POC.git
+          git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/luisangelgr01/ducklang_AIreviewed.git
 
       - name: Run review
         env:
-          AZURE_OPENAI_ENDPOINT: ${{ secrets.AZURE_OPENAI_ENDPOINT }}
-          AZURE_OPENAI_GPT_DEPLOYMENT: ${{ secrets.AZURE_OPENAI_GPT_DEPLOYMENT }}
-          AZURE_OPENAI_API_KEY: ${{ secrets.AZURE_OPENAI_API_KEY }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: python .github/actions/code_review.py

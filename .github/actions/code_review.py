@@ -1,24 +1,18 @@
 import os
-from openai import AzureOpenAI
+from cloudflare import Cloudflare
 from github import Github
 import git
 import json
 import textwrap
 
-# Load OpenAI API key from environment
-    # openai.api_key = os.getenv('OPENAI_API_KEY')
-endpoint = os.getenv("AZURE_OPENAI_ENDPOINT")
-deployment = os.getenv("AZURE_OPENAI_GPT_DEPLOYMENT")
-subscription_key = os.getenv("AZURE_OPENAI_API_KEY")
+# Load AI API key from environment
+account_id = os.getenv("CLOUDFLARE_ACCOUNT_ID")
+api_token = os.getenv("CLOUDFLARE_API_TOKEN")
 
-# Initialize Azure OpenAI client with key-based authentication
-client = AzureOpenAI(
-    azure_endpoint = endpoint,
-    api_key = subscription_key,
-    api_version = "2024-05-01-preview",
-)
+# Initialize AI client with key-based authentication
+client = Cloudflare(api_token=api_token)
 
-# Set the maximum token limit for GPT-3.5 Turbo
+# Set the maximum token limit
 TOKEN_LIMIT = 4000
 
 def get_file_content(file_path):
@@ -63,9 +57,9 @@ def get_changed_files(pr):
 
     return files
 
-def send_to_openai(files):
+def send_to_ai(files):
     """
-    This function sends the changed files to OpenAI for review.
+    This function sends the changed files to AI for review.
 
     Args:
         files (dict): A dictionary containing the file paths as keys and their content as values.
@@ -81,9 +75,10 @@ def send_to_openai(files):
 
     reviews = []
     for chunk in chunks:
-        # Send a message to OpenAI with each chunk of the code for review
-        message = client.chat.completions.create(
-            model = deployment,
+        # Send a message to AI with each chunk of the code for review
+        message = client.workers.ai.run(
+            "@cf/meta/llama-3-8b-instruct" ,
+            account_id=account_id,
             messages=[
                 {
                     "role": "user",
@@ -93,7 +88,7 @@ def send_to_openai(files):
         )
 
         # Add the assistant's reply to the list of reviews
-        reviews.append(message.choices[0].message.content)
+        reviews.append(message["response"])
 
     # Join all the reviews into a single string
     review = "\n".join(reviews)
@@ -115,7 +110,7 @@ def main():
     """
     The main function orchestrates the operations of:
     1. Fetching changed files from a PR
-    2. Sending those files to OpenAI for review
+    2. Sending those files to AI for review
     3. Posting the review as a comment on the PR
     """
 
@@ -140,8 +135,8 @@ def main():
     # Get the changed files in the pull request
     files = get_changed_files(pr)
 
-    # Send the files to OpenAI for review
-    review = send_to_openai(files)
+    # Send the files to AI for review
+    review = send_to_ai(files)
 
     # Post the review as a comment on the pull request
     post_comment(pr, review)

@@ -1,18 +1,13 @@
 import os
-from openai import AzureOpenAI
+from cloudflare import Cloudflare
 import subprocess
 
-# Load OpenAI API key from environment
-endpoint = os.getenv("AZURE_OPENAI_ENDPOINT")
-deployment = os.getenv("AZURE_OPENAI_GPT_DEPLOYMENT")
-subscription_key = os.getenv("AZURE_OPENAI_API_KEY")
+# LoadAI API key from environment
+account_id = os.getenv("CLOUDFLARE_ACCOUNT_ID")
+api_token = os.getenv("CLOUDFLARE_API_TOKEN")
 
-# Initialize Azure OpenAI client with key-based authentication
-client = AzureOpenAI(
-    azure_endpoint = endpoint,
-    api_key = subscription_key,
-    api_version = "2024-05-01-preview",
-)
+# Initialize AI client with key-based authentication
+client = Cloudflare(api_token=api_token)
 
 def get_code_diff():
     """
@@ -31,7 +26,7 @@ def get_code_diff():
 
 def get_commit_message(diff):
     """
-    Get the commit message using OpenAI for the provided code difference.
+    Get the commit message usingAI for the provided code difference.
 
     Args:
         diff (str): Description of code difference.
@@ -53,9 +48,10 @@ def get_commit_message(diff):
             "⚙️ for configuration changes\n\n"
             "Start with 'Title:' for the title and 'Body:' for the detailed description. Here are the code changes:")
 
-    # Using the ChatCompletion interface to interact with gpt-3.5-turbo
-    response = client.chat.completions.create(
-        model= deployment,
+    # Using the ChatCompletion interface to interact with ai
+    response = client.workers.ai.run(
+        "@cf/meta/llama-3-8b-instruct" ,
+        account_id=account_id,
         messages=[
             {
                 "role": "system",
@@ -69,7 +65,7 @@ def get_commit_message(diff):
     )
     
     # Extracting the assistant's message from the response and parsing it
-    message_from_assistant = response.choices[0].message.content
+    message_from_assistant = response["response"]
     
     # Extract the title and body from the model's response
     title = message_from_assistant.split('Title:')[1].split('Body:')[0].strip()
