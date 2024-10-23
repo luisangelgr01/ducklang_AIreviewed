@@ -1,5 +1,7 @@
 # ducklang_AIreviewed
 
+[Documentation (Spanish)](https://docs.google.com/document/d/10ikBZkRi_IMPekerjUT-cDc6o7W0vfb0DKV0LHtO4fQ/edit?usp=sharing)
+
 ## Prerequisites
 - Python 3
 - Java 11
