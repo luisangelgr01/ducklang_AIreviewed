@@ -1,1 +1,22 @@
-if (x) { y = 5 } else { z = 10 }
+programa patito;
+
+vars uno, dos : entero;
+
+nula funcioncita (x: flotante, y: entero) {
+    vars a: flotante;
+    {
+        escribe("Hola mundo ducklang", a, x, y);
+    }
+};
+
+inicio {
+    one = (uno * -2) + 3.3 / dos;
+    si(uno > 0) {
+        funcioncita(one, uno);
+    } sino {
+        mientras(uno != 1) haz {
+            uno = uno + 0.5;
+            escribe("Ya casi es uno", uno);
+        };
+    };
+} fin
