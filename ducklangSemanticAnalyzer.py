@@ -1,15 +1,14 @@
 from ducklangListener import ducklangListener
 from ducklangParser import ducklangParser
 
+#estructuras de datos de apoyo para el análisis semántico
 func_dir = {}
 
-# Symbol table structure
 tabla_simbolos = {
-    'global': {},  #'Global'scope dictionary for variables
-    'local': {}    # Local scope dictionary for variables (e.g., within functions)
+    'global': {},
+    'local': {}
 }
 
-# Example of a semantic cube for type compatibility with operators
 cubo_semantico = {
     'entero': {
         'entero': {'+': 'entero', '-': 'entero', '*': 'entero', '/': 'flotante'},
@@ -23,10 +22,11 @@ cubo_semantico = {
 
 class ducklangSemanticAnalyzer(ducklangListener):
     def __init__(self):
-        self.scope = 'global'  # Default scope is'global'
+        #variables de apoyo, manejan valores actuales al salir/entrar a una regla sintáctica, serán utilizadas en otro paso del recorrido del árbol
+        self.scope = 'global' #se inicializa en global el scope
         self.current_ids = []
         self.current_func = None
-        self.current_func_params = []
+        self.current_func_params = {}
         self.current_func_var_tipo = None
     
     def enterVid(self, ctx: ducklangParser.VidContext):
@@ -42,32 +42,35 @@ class ducklangSemanticAnalyzer(ducklangListener):
         self.declarar_variables(var_nombres, var_tipo, self.scope)
 
     def declarar_variables(self, nombres, tipo, scope):
-        # Check if the variable has already been declared in the current scope
         for nombre in nombres:
-            if nombre in tabla_simbolos[scope]:
+            if nombre in tabla_simbolos[scope] or nombre in tabla_simbolos['global']:
                 raise Exception(f"Error semántico: Variable '{nombre}' se volvió a declarar en el scope {scope}.")
-            # If not, add the variable to the symbol table with its type
             tabla_simbolos[scope][nombre] = tipo
 
     def enterFuncs(self, ctx: ducklangParser.FuncsContext):
         self.scope = 'local'
         self.current_func = ctx.getChild(1).getText()
-        self.current_func_params = []
+        if self.current_func in func_dir:
+            raise Exception(f"Error semántico: Función '{self.current_func}' se volvió a declarar.")
+        self.current_func_params = {}
     
     def exitTipo(self, ctx: ducklangParser.TipoContext):
         self.current_func_var_tipo = ctx.getChild(0).getText()
     
     def exitFid(self, ctx: ducklangParser.FidContext):
-        self.current_func_params.append((ctx.getChild(0).getText(), self.current_func_var_tipo))
+        var_nombre = ctx.getChild(0).getText()
+        if var_nombre in self.current_func_params:
+            raise Exception(f"Error semántico: Parámetro '{var_nombre}' se volvió a declarar en la función '{self.current_func}'.")
+        self.current_func_params[var_nombre] = self.current_func_var_tipo
     
     def exitFidtipo(self, ctx: ducklangParser.FidtipoContext):
         func_dir[self.current_func] = {
-            'parameters': self.current_func_params
+            'parametros': self.current_func_params
         }
     
     def exitFuncs(self, ctx: ducklangParser.FuncsContext):
         self.current_func = None
-        self.current_func_params = []
+        self.current_func_params = {}
         self.current_func_var_tipo = None
         tabla_simbolos['local'] = {}
     
