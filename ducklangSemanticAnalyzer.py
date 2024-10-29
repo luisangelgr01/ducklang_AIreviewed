@@ -26,7 +26,7 @@ class ducklangSemanticAnalyzer(ducklangListener):
         self.scope = 'global' #se inicializa en global el scope
         self.current_ids = []
         self.current_func = None
-        self.current_func_params = []
+        self.current_func_params = {}
         self.current_func_var_tipo = None
     
     def enterVid(self, ctx: ducklangParser.VidContext):
@@ -43,29 +43,34 @@ class ducklangSemanticAnalyzer(ducklangListener):
 
     def declarar_variables(self, nombres, tipo, scope):
         for nombre in nombres:
-            if nombre in tabla_simbolos[scope]:
+            if nombre in tabla_simbolos[scope] or nombre in tabla_simbolos['global']:
                 raise Exception(f"Error semántico: Variable '{nombre}' se volvió a declarar en el scope {scope}.")
             tabla_simbolos[scope][nombre] = tipo
 
     def enterFuncs(self, ctx: ducklangParser.FuncsContext):
         self.scope = 'local'
         self.current_func = ctx.getChild(1).getText()
-        self.current_func_params = []
+        if self.current_func in func_dir:
+            raise Exception(f"Error semántico: Función '{self.current_func}' se volvió a declarar.")
+        self.current_func_params = {}
     
     def exitTipo(self, ctx: ducklangParser.TipoContext):
         self.current_func_var_tipo = ctx.getChild(0).getText()
     
     def exitFid(self, ctx: ducklangParser.FidContext):
-        self.current_func_params.append((ctx.getChild(0).getText(), self.current_func_var_tipo))
+        var_nombre = ctx.getChild(0).getText()
+        if var_nombre in self.current_func_params:
+            raise Exception(f"Error semántico: Parámetro '{var_nombre}' se volvió a declarar en la función '{self.current_func}'.")
+        self.current_func_params[var_nombre] = self.current_func_var_tipo
     
     def exitFidtipo(self, ctx: ducklangParser.FidtipoContext):
         func_dir[self.current_func] = {
-            'parameters': self.current_func_params
+            'parametros': self.current_func_params
         }
     
     def exitFuncs(self, ctx: ducklangParser.FuncsContext):
         self.current_func = None
-        self.current_func_params = []
+        self.current_func_params = {}
         self.current_func_var_tipo = None
         tabla_simbolos['local'] = {}
     
