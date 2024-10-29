@@ -1,15 +1,14 @@
 from ducklangListener import ducklangListener
 from ducklangParser import ducklangParser
 
+#estructuras de datos de apoyo para el análisis semántico
 func_dir = {}
 
-# Symbol table structure
 tabla_simbolos = {
-    'global': {},  #'Global'scope dictionary for variables
-    'local': {}    # Local scope dictionary for variables (e.g., within functions)
+    'global': {},
+    'local': {}
 }
 
-# Example of a semantic cube for type compatibility with operators
 cubo_semantico = {
     'entero': {
         'entero': {'+': 'entero', '-': 'entero', '*': 'entero', '/': 'flotante'},
@@ -23,7 +22,8 @@ cubo_semantico = {
 
 class ducklangSemanticAnalyzer(ducklangListener):
     def __init__(self):
-        self.scope = 'global'  # Default scope is'global'
+        #variables de apoyo, manejan valores actuales al salir/entrar a una regla sintáctica, serán utilizadas en otro paso del recorrido del árbol
+        self.scope = 'global' #se inicializa en global el scope
         self.current_ids = []
         self.current_func = None
         self.current_func_params = []
@@ -42,11 +42,9 @@ class ducklangSemanticAnalyzer(ducklangListener):
         self.declarar_variables(var_nombres, var_tipo, self.scope)
 
     def declarar_variables(self, nombres, tipo, scope):
-        # Check if the variable has already been declared in the current scope
         for nombre in nombres:
             if nombre in tabla_simbolos[scope]:
                 raise Exception(f"Error semántico: Variable '{nombre}' se volvió a declarar en el scope {scope}.")
-            # If not, add the variable to the symbol table with its type
             tabla_simbolos[scope][nombre] = tipo
 
     def enterFuncs(self, ctx: ducklangParser.FuncsContext):
