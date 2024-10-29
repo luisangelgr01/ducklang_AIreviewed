@@ -1,6 +1,7 @@
 from antlr4 import *
 from ducklangLexer import ducklangLexer
 from ducklangParser import ducklangParser
+from ducklangSemanticAnalyzer import ducklangSemanticAnalyzer
 
 def main(input_txt):
     with open(input_txt, 'r') as file:
@@ -12,7 +13,12 @@ def main(input_txt):
     parser = ducklangParser(token_stream)       #se manda a llamar al parser
 
     arbol = parser.programa()                   #el resultado es el arbol con la raíz siendo la regla de grmática 'programa'
+    print('\nARBOL RESULTANTE:\n')
     print(arbol.toStringTree(recog=parser))     #se imprime el arbol resultante del parser en formato de texto
+
+    analizador_semantica = ducklangSemanticAnalyzer()
+    walker = ParseTreeWalker()
+    walker.walk(analizador_semantica, arbol)
 
 if __name__ == '__main__':
     input_txt = 'input_ducklang_code.txt'

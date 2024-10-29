@@ -17,12 +17,12 @@ source venv/bin/activate
 ```
 pip install -r requirements.txt
 ````
-4. (If needed) Make changes to the lexer and parser in the "ducklang.g4" file, then run this command to generate the necessary Python module files
+4. (If needed) Make changes to the lexer and parser declarations in the "ducklang.g4" file, then run this command to generate the necessary Python module files
 ```
 java -jar antlr-4.13.2-complete.jar -Dlanguage=Python3 ducklang.g4
 ```
 5. (If needed) Make changes to the input file where the ducklang code is ("input_ducklang_code.txt")
-6. (If needed) Make changes to the Python files (main, lexer, parser, listeners, visitors)
+6. (If needed) Make changes to the semantic analyzer ("ducklangSemanticAnalyzer.py"), and/or to the file that executes the compiler ("main.py")
 7. Execute the parser
 ```
 python main.py

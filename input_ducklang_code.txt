@@ -9,6 +9,13 @@ nula funcioncita (x: flotante, y: entero) {
     }
 };
 
+nula funcionsota (x: flotante, y: entero) {
+    vars a: flotante;
+    {
+        escribe("Hola mundo ducklang", a, x, y);
+    }
+};
+
 inicio {
     one = (uno * -2) + 3.3 / dos;
     si(uno > 0) {
