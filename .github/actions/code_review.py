@@ -82,7 +82,7 @@ def send_to_ai(files):
             messages=[
                 {
                     "role": "user",
-                    "content": "You are assigned as a code reviewer. Your responsibility is to review the provided code and offer recommendations for enhancement. Identify any problematic code snippets, highlight potential issues, and evaluate the overall quality of the code you review:\n" + chunk
+                    "content": "You are assigned as a code reviewer for a new language compiler named DuckLang that works with ANTLR4's lexers, parsers and listeners. Your responsibility is to review the provided code and offer recommendations for enhancement. Identify any problematic code snippets, highlight potential issues, and evaluate the overall quality of the code you review:\n" + chunk
                 }
             ],
         )

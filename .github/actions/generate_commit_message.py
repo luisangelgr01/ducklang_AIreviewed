@@ -38,7 +38,7 @@ def get_commit_message(diff):
         return diff
 
     # Constructing a prompt to guide the model
-    context=("You are an AI code reviewer. Generate a commit message with a title and a body."
+    context=("You are an AI code reviewer for a new language compiler named DuckLang that works with ANTLR4's lexers, parsers and listeners. Generate a commit message with a title and a body."
             "The title should start with an appropriate emoticon: \n\n"
             "✨ for new features\n"
             "🐛 for bug fixes\n"
