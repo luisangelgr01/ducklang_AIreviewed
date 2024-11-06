@@ -1,29 +1,29 @@
 programa patito;
 
-vars uno, dos : entero;
+vars uno, dos: flotante;
 
 nula funcioncita (x: flotante, y: entero) {
     vars a: flotante;
     {
-        escribe("Hola mundo ducklang", a, x, y);
+        escribe("Hola mundo ducklang", a);
     }
 };
 
 nula funcionsota (x: flotante, y: entero) {
     vars a: flotante;
     {
-        escribe("Hola mundo ducklang", a, x, y);
+        escribe("Hola mundo ducklang", a);
     }
 };
 
 inicio {
-    one = (uno * -2) + 3.3 / dos;
-    si(uno > 0) {
-        funcioncita(one, uno);
+    dos = (uno * -2) - 3.3 / dos;
+    si(dos > 0) {
+        dos = uno;
     } sino {
         mientras(uno != 1) haz {
             uno = uno + 0.5;
-            escribe("Ya casi es uno", uno);
+            escribe("Ya casi es uno", dos);
         };
     };
 } fin
