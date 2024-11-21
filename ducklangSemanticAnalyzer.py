@@ -10,6 +10,7 @@ PTypes = deque()
 Quad = deque()
 availTemp = deque([f't{i}' for i in range(1000, 0, -1)])
 contTemps = 0
+maxTemps = 0
 PJumps = deque()
 
 #funcion de apoyo para determinar el tipo de nodo del hijo (muestra el nombre de la regla gramatical o el nombre de token)
@@ -32,14 +33,16 @@ def child_type(ctx: ParserRuleContext, indice: int):
 
 #funcion de apoyo para obtener el siguiente temporal disponible
 def getNextAvailTemp():
-    global availTemp, contTemps
+    global availTemp, contTemps, maxTemps
     if not availTemp:
         raise Exception("Error: Stack Overflow. Se acabaron los temporales disponibles.")
     contTemps = contTemps + 1
+    maxTemps = max(maxTemps, contTemps)
     return availTemp.pop()
 
 #función de apoyo para generar cuádruplo de expresión
 def generateQuadExpression():
+    global availTemp, contTemps
     right_operand = PilaO.pop() if len(PilaO) > 0 else None
     right_type = PTypes.pop() if len(PTypes) > 0 else None
     left_operand = PilaO.pop() if len(PilaO) > 0 else None
@@ -55,8 +58,10 @@ def generateQuadExpression():
         PTypes.append(result_type)
         if(right_operand[0] == 't' and right_operand[-1].isdigit()):
             availTemp.append(right_operand)
+            contTemps = contTemps - 1
         if(left_operand[0] == 't' and left_operand[-1].isdigit()):
             availTemp.append(left_operand)
+            contTemps = contTemps - 1
     else:
         raise Exception(f"Error semántico: Type mismatch. Operandos {left_operand} {left_type} y {right_operand} {right_type} no son compatibles con el operador {operator}.")
 
@@ -98,6 +103,8 @@ class ducklangSemanticAnalyzer(ducklangListener):
         self.isExpCondicion = False
         self.current_llamada = None
         self.k = 0
+        self.ovejota_quads = None
+        self.ovejota_funcs = None
     
     def enterVid(self, ctx: ducklangParser.VidContext):
         self.current_ids.append(ctx.getChild(0).getText())
@@ -142,25 +149,34 @@ class ducklangSemanticAnalyzer(ducklangListener):
             tabla_simbolos['local'][variable] = self.current_func_params[variable]
     
     def exitFuncs(self, ctx: ducklangParser.FuncsContext):
+        global contTemps, maxTemps
         func_dir[self.current_func].update({
             'numVars': len(tabla_simbolos['local']),
-            'numTemps': contTemps,
+            'numTemps': maxTemps,
         })
         Quad.append(['ENDFunc', None, None, None])
         self.current_func = None
         self.current_func_params = {}
         self.current_func_var_tipo = None
         tabla_simbolos['local'] = {}
+        contTemps = 0
+        maxTemps = 0
     
     def exitPrograma(self, ctx: ducklangParser.ProgramaContext):
+        global contTemps, maxTemps
         Quad.append(['END', None, None, None])
+        func_dir['__main__'] = {
+            'numVars': len(tabla_simbolos['global']),
+            'numTemps': maxTemps,
+        }
         print('\nDirectorio de funciones al finalizar programa:')
         print(func_dir)
-        print('\nTabla de símbolos al finalizar programa:')
-        print(tabla_simbolos)
         print('\nCuádruplos generados:')
         for i, quad in enumerate(Quad):
             print(f'{i}: {quad}')
+        print('\n\n')
+        self.ovejota_quads = Quad
+        self.ovejota_funcs = func_dir
     
     def enterFaid(self, ctx: ducklangParser.FaidContext):
         factor = child_type(ctx, 0)
@@ -226,6 +242,7 @@ class ducklangSemanticAnalyzer(ducklangListener):
                 generateQuadExpression()
     
     def exitCont(self, ctx: ducklangParser.ContContext):
+        global availTemp, contTemps
         print_param = child_type(ctx, 0)
         if(print_param == 'LETRERO'):
             print_text = ctx.getChild(0).getText()
@@ -236,8 +253,10 @@ class ducklangSemanticAnalyzer(ducklangListener):
             Quad.append(['print', print_exp, None, None])
             if(print_exp[0] == 't' and print_exp[-1].isdigit()):
                 availTemp.append(print_exp)
+                contTemps = contTemps - 1
     
     def exitAsigna(self, ctx: ducklangParser.AsignaContext):
+        global availTemp, contTemps
         variable = ctx.getChild(0).getText()
         variable_type = tabla_simbolos['global'][variable] if variable in tabla_simbolos['global'] else tabla_simbolos['local'][variable] if variable in tabla_simbolos['local'] else None
         resultado = PilaO.pop()
@@ -249,19 +268,23 @@ class ducklangSemanticAnalyzer(ducklangListener):
         Quad.append(['=', resultado, None, variable])
         if(resultado[0] == 't' and resultado[-1].isdigit()):
             availTemp.append(resultado)
+            contTemps = contTemps - 1
     
     def enterCondicion(self, ctx: ducklangParser.CondicionContext):
         self.isExpCondicion = True
     
     def enterCuerpo(self, ctx: ducklangParser.CuerpoContext):
-        contTemps = 0
+        global availTemp, contTemps
         if(self.isExpCondicion and len(PTypes) > 0):
             exp_type = PTypes.pop()
             if(exp_type != 'booleano'):
                 raise Exception(f"Error semántico: Type mismatch. Expresión de condición no es de tipo booleano.")
             else:
-                result = PilaO.pop()
-                Quad.append(['GoToF', result, None])
+                resultado = PilaO.pop()
+                Quad.append(['GoToF', resultado, None])
+                if(resultado[0] == 't' and resultado[-1].isdigit()):
+                    availTemp.append(resultado)
+                    contTemps = contTemps - 1
                 PJumps.append(len(Quad)-1)
         self.isExpCondicion = False
     
@@ -295,18 +318,22 @@ class ducklangSemanticAnalyzer(ducklangListener):
         self.k = 0
     
     def exitLexpresion(self, ctx: ducklangParser.LexpresionContext):
+        global availTemp, contTemps
         argumento = PilaO.pop()
         argumento_tipo = PTypes.pop()
         parametro_tipo = list(func_dir[self.current_llamada]['parametros'].values())[self.k]
         if(parametro_tipo != argumento_tipo):
             raise Exception(f"Error semántico: Type mismatch. Argumento en posición {self.k+1} de llamada a función '{self.current_llamada}' no coincide con la firma de la función.")
         Quad.append(['PARAMETER', argumento, self.k, None])
+        if(argumento[0] == 't' and argumento[-1].isdigit()):
+            availTemp.append(argumento)
+            contTemps = contTemps - 1
         self.k = self.k + 1
     
     def exitLlamada(self, ctx: ducklangParser.LlamadaContext):
         if(self.k != func_dir[self.current_llamada]['numParams']):
             raise Exception(f"Error semántico: Número de argumentos incorrecto en llamada a función '{self.current_llamada}'.")
-        Quad.append(['GOSUB', self.current_llamada, None, ])
+        Quad.append(['GOSUB', self.current_llamada, None, None])
     
     def enterPrograma(self, ctx: ducklangParser.ProgramaContext):
         Quad.append(['GoTo', None, None])

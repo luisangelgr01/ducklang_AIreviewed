@@ -2,6 +2,7 @@ from antlr4 import *
 from ducklangLexer import ducklangLexer
 from ducklangParser import ducklangParser
 from ducklangSemanticAnalyzer import ducklangSemanticAnalyzer
+from VirtualMachine import VirtualMachine
 
 def main(input_txt):
     with open(input_txt, 'r') as file:
@@ -19,7 +20,13 @@ def main(input_txt):
     analizador_semantica = ducklangSemanticAnalyzer()   #se incializa objeto de la clase que realiza el analisis semántico
     walker = ParseTreeWalker()                          #se inicializa objeto que recorre árboles
     walker.walk(analizador_semantica, arbol)            #se recorre el árbol resultante con el analisis semántico
+    quads = analizador_semantica.ovejota_quads
+    funcs = analizador_semantica.ovejota_funcs
+
+    vm = VirtualMachine(quads, funcs)
+    vm.execute()
 
 if __name__ == '__main__':
-    input_txt = 'input_ducklang_code.txt'
+    #input_txt = 'input_ducklang_code.txt'
+    input_txt = 'factorial_example.txt'
     main(input_txt)
